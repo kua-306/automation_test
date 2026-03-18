@@ -24,7 +24,7 @@ load_dotenv()
 
 DATABASE_URL = "sqlite+aiosqlite:///./sql_app.db"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_async_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 Base.metadata.create_all(engine)
 
 app = FastAPI()
