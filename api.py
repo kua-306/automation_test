@@ -3,17 +3,16 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine,select,delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
-import time
 from pydantic import BaseModel
 from typing import Optional
 import models
 from database import get_db,Base
 from schemas import UserCreate,Token,Questions,QCreate,User,UserQ
 from auth import hash_password,verify_password,decode_access_token,create_access_token,get_current_user
-import schedule
-import time
-from datetime import datetime
-from loguru import logger
+# import schedule
+# import time
+# from datetime import datetime
+# from loguru import logger
 import sys
 # from slowapi import Limiter, _rate_limit_exceeded_handler
 # from slowapi.util import get_remote_address
@@ -51,14 +50,14 @@ app = FastAPI()
 # app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # @limiter.limit("10/minute")
 
-logger.remove()
-logger.add(sys.stderr, format="{time} {level} {message}", level="INFO")
-logger.add("logging.log", format="{time} {level} {message}", level="INFO")
+# logger.remove()
+# logger.add(sys.stderr, format="{time} {level} {message}", level="INFO")
+# logger.add("logging.log", format="{time} {level} {message}", level="INFO")
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    logger.warning(f"HTTPException: {exc.detail}")
+    # logger.warning(f"HTTPException: {exc.detail}")
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -68,7 +67,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 @app.exception_handler(Exception)
 async def exception_handler(request: Request, exc: Exception):
-    logger.error(f"Exception: {exc}")
+    # logger.error(f"Exception: {exc}")
     return JSONResponse(
         status_code=500,
         content={
@@ -89,7 +88,7 @@ async def create_user(user:UserCreate,db : AsyncSession = Depends(get_db)):
     user.password = hash_password(user.password)
     new_user = models.Users(**user.dict())
     db.add(new_user)
-    logger.info(f"Da luu user: {new_user.username} vao db")
+    # logger.info(f"Da luu user: {new_user.username} vao db")
     await db.commit()
     await db.refresh(new_user)
     return new_user
