@@ -1,104 +1,88 @@
 import pytest
-from playwright.sync_api import Page, expect
-
 import random
 
+# Cấu hình URL cơ sở
+BASE_URL = "http://127.0.0.1:8000"
+
 @pytest.fixture
-def api_page(page: Page):
-    # Tạo username ngẫu nhiên để không bao giờ bị trùng    
-    page.goto('http://127.0.0.1:8000/docs')
-    
-    signup_section = page.locator("#operations-default-create_user_create_user__post")
-    signup_section.click()
-    signup_section.get_by_role("button", name="Try it out").click()
-    signup_section.locator("textarea.body-param__text").fill('{"username": "number1","password": "number1"}')
-    
-    with page.expect_response("**/create-user/", timeout=5000) as signup_res:
-        signup_section.get_by_role("button", name="Execute").click()
-    
-    # Nếu đăng ký thất bại, in ra lỗi để soi
-    if signup_res.value.status not in [200, 201]:
-        print(f"SIGNUP FAILED: {signup_res.value.json()}")
-        
-    signup_section.click() 
+def api_request(playwright):
+    """Fixture tạo request context để gọi API trực tiếp"""
+    request_context = playwright.request.new_context(base_url=BASE_URL)
+    yield request_context
+    request_context.dispose()
 
-    # --- BƯỚC 2: ĐĂNG NHẬP ---
-    login_section = page.locator("#operations-default-login_login__post")
-    login_section.click()
-    login_section.get_by_role("button", name="Try it out").click()
-    login_section.locator("textarea.body-param__text").fill('{"username": "number1","password": "number1"}')
-
-    with page.expect_response("**/login/", timeout=5000) as login_res:
-        login_section.get_by_role("button", name="Execute").click()
-    
-    resp_json = login_res.value.json()
-    
-    # Bắt lỗi 400 tại đây và in ra chi tiết nhất có thể
-    if 'access_token' not in resp_json:
-        print(f"LOGIN FAILED. Status: {login_res.value.status}")
-        print(f"API Response: {resp_json}")
-        raise KeyError(f"Login Error: {resp_json.get('detail', 'No detail')}")
-
-    token = resp_json['access_token']
-    page.set_extra_http_headers({"Authorization": f"Bearer {token}"})
-    
-    login_section.click()
-    return page
 @pytest.fixture
-def create_question(api_page):    
-    section = api_page.locator("#operations-default-create_question_create_question__post")
-    section.click()
-    section.get_by_role("button", name="Try it out").click()
-    section.locator("textarea.body-param__text").fill(
-        '{"question": "Python?", "answer": "Ngôn ngữ"}'
+def auth_token(api_request):
+    """Fixture tự động đăng ký và đăng nhập để lấy Token"""
+    # Tạo user ngẫu nhiên để tránh lỗi 'User already exists'
+    user_id = random.randint(1000, 9999)
+    username = f"user_{user_id}"
+    password = "password123"
+
+    # 1. Đăng ký (Signup)
+    signup_res = api_request.post("/create-user/", json={
+        "username": username,
+        "password": password
+    })
+    # Nếu user đã tồn tại (200/201 đều OK, hoặc lỗi 400 thì vẫn tiếp tục login)
+    
+    # 2. Đăng nhập (Login)
+    login_res = api_request.post("/login/", data={
+        "username": username,
+        "password": password
+    })
+    
+    assert login_res.status == 200, f"Login failed: {login_res.text()}"
+    token = login_res.json()["access_token"]
+    return token
+
+@pytest.fixture
+def create_question(api_request, auth_token):
+    """Fixture tạo một câu hỏi mẫu và trả về ID"""
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    response = api_request.post(
+        "/create-question/",
+        headers=headers,
+        json={"question": "Python là gì?", "answer": "Một ngôn ngữ lập trình"}
+    )
+    assert response.status in [200, 201]
+    return response.json()["id"]
+
+# --- CÁC BÀI TEST CHÍNH ---
+
+def test_get_question(api_request, auth_token, create_question):
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    # Gọi API Get trực tiếp bằng ID
+    response = api_request.get(f"/get-question/{create_question}", headers=headers)
+    
+    assert response.status == 200
+    assert response.json()["id"] == create_question
+    print(f"✅ Get Question {create_question} thành công!")
+
+def test_patch_question(api_request, auth_token, create_question):
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    response = api_request.patch(
+        f"/update-question/{create_question}",
+        headers=headers,
+        json={"question": "What is Python?", "answer": "Programming Language"}
     )
     
-    with api_page.expect_response("**/create-question/") as response_info:
-        section.get_by_role("button", name="Execute").click()
+    assert response.status == 200
+    assert response.json()["question"] == "What is Python?"
+
+def test_delete_question(api_request, auth_token, create_question):
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    response = api_request.delete(f"/delete-question/{create_question}", headers=headers)
     
-    response = response_info.value
-    assert response.status == 201 or response.status == 200 # Tùy Backend trả về
-    return response.json()['id']
+    assert response.status == 200
+    assert "deleted" in response.json()["message"].lower()
 
-def test_get_question(api_page, create_question):
-    question_id = str(create_question) 
+def test_login_fail(api_request):
+    """Test trường hợp đăng nhập sai"""
+    response = api_request.post("/login/", data={
+        "username": "wrong_user",
+        "password": "wrong_password"
+    })
     
-    section = api_page.locator("#operations-default-get_question_get_question__question_id__get")
-    section.click()
-    section.get_by_role("button", name="Try it out").click()
-    
-    # Điền ID lấy từ fixture
-    section.get_by_role("textbox", name="question_id").fill(question_id)
-    section.get_by_role("button", name="Execute").click()
-    expect(section.locator(".response-col_description pre").first).to_contain_text(question_id)
-
-def test_patch(api_page, create_question):
-    question_id = str(create_question)
-    section= api_page.locator("#operations-default-update_question_update_question__question_id__patch")
-    section.click()
-    section.get_by_role("button", name="Try it out").click()
-    section.get_by_role("textbox", name="question_id").fill(question_id)
-    section.locator("textarea.body-param__text").fill(
-        '{"question": "what is python?","answer": "Ngôn ngữ"}'
-    )
-    section.get_by_role("button", name="Execute").click()
-    expect(section.locator(".response-col_description pre").first).to_contain_text(question_id)
-
-def test_delete(api_page, create_question):
-    question_id = str(create_question)
-    section = api_page.locator("#operations-default-delete_question_delete_question__question_id__delete")
-    section.click()
-    section.get_by_role("button", name="Try it out").click()
-    section.get_by_role("textbox", name="question_id").fill(question_id)
-    section.get_by_role("button", name="Execute").click()
-    expect(section.get_by_text("Question deleted successfully")).to_be_visible()
-
-def test_loginfail(page: Page):
-    page.goto('http://127.0.0.1:8000/docs')
-    login_section = page.locator("#operations-default-login_login__post")
-    login_section.click()
-    login_section.get_by_role("button", name="Try it out").click()
-    login_section.locator("textarea.body-param__text").fill('{"username": "number1","password": "number2"}')
-    login_section.get_by_role("button", name="Execute").click()
-    expect(login_section.get_by_text("username or password is incorrect")).to_be_visible()
-
+    assert response.status == 400 # Hoặc 401 tùy Backend
+    assert "incorrect" in response.json()["detail"].lower()
