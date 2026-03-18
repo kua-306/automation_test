@@ -18,13 +18,13 @@ from auth import hash_password,verify_password,decode_access_token,create_access
 # from slowapi.util import get_remote_address
 # from slowapi.errors import RateLimitExceeded
 # from fastapi.middleware.cors import CORSMiddleware
-import os
+from database import engine
 from dotenv import load_dotenv  
 load_dotenv()
 
-DATABASE_URL = "sqlite+aiosqlite:///./sql_app.db"
+# DATABASE_URL = "sqlite+aiosqlite:///./sql_app.db"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# engine = create_async_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 Base.metadata.create_all(engine)
 
 app = FastAPI()
