@@ -78,7 +78,7 @@ async def exception_handler(request: Request, exc: Exception):
             "detail": str(exc)
         }
     )
-@app.post('/create-user/',response_model=UserCreate,status_code = status.HTTP_201_CREATED)
+@app.post('/create-user/',response_model=User,status_code = status.HTTP_201_CREATED)
 async def create_user(user:UserCreate,db : AsyncSession = Depends(get_db)):
     query = select(models.Users).where(models.Users.username == user.username)
     result = await db.execute(query)

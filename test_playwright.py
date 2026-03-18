@@ -13,7 +13,6 @@ def api_page(page: Page):
     
     page.goto('http://127.0.0.1:8000/docs')
     
-    # --- BƯỚC 1: ĐĂNG KÝ (Bắt buộc phải đợi Response) ---
     signup_section = page.locator("#operations-default-create_user_create_user__post")
     signup_section.click()
     signup_section.get_by_role("button", name="Try it out").click()
@@ -60,8 +59,6 @@ def create_question(api_page):
         '{"question": "Python?", "options": ["Ngôn ngữ", "Con rắn"], "answer": "Ngôn ngữ"}'
     )
     
-    # CHỈ NHẤN EXECUTE 1 LẦN TRONG KHỐI WITH
-    # Dùng section để tránh bị trùng với các nút Execute khác
     with api_page.expect_response("**/create-question/") as response_info:
         section.get_by_role("button", name="Execute").click()
     
