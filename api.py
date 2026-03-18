@@ -18,15 +18,17 @@ from auth import hash_password,verify_password,decode_access_token,create_access
 # from slowapi.util import get_remote_address
 # from slowapi.errors import RateLimitExceeded
 # from fastapi.middleware.cors import CORSMiddleware
-from database import engine
+# from database import engine
 from dotenv import load_dotenv  
 load_dotenv()
 
 
-
-Base.metadata.create_all(engine)
-
 app = FastAPI()
+@app.on_event("startup")
+async def startup():
+    from database import engine, Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 # app.add_middleware(
