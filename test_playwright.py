@@ -20,7 +20,7 @@ def auth_token(api_request):
     password = "password123"
 
     # 1. Đăng ký (Signup)
-    signup_res = api_request.post("/create-user/", json={
+    signup_res = api_request.post("/create-user/", data={
         "username": username,
         "password": password
     })
@@ -43,7 +43,7 @@ def create_question(api_request, auth_token):
     response = api_request.post(
         "/create-question/",
         headers=headers,
-        json={"question": "Python là gì?", "answer": "Một ngôn ngữ lập trình"}
+        data={"question": "Python là gì?", "answer": "Một ngôn ngữ lập trình"}
     )
     assert response.status in [200, 201]
     return response.json()["id"]
@@ -64,7 +64,7 @@ def test_patch_question(api_request, auth_token, create_question):
     response = api_request.patch(
         f"/update-question/{create_question}",
         headers=headers,
-        json={"question": "What is Python?", "answer": "Programming Language"}
+        data={"question": "What is Python?", "answer": "Programming Language"}
     )
     
     assert response.status == 200
