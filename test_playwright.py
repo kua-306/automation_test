@@ -23,9 +23,7 @@ def auth_token(api_request):
     signup_res = api_request.post("/create-user/", data={
         "username": username,
         "password": password
-    })
-    # Nếu user đã tồn tại (200/201 đều OK, hoặc lỗi 400 thì vẫn tiếp tục login)
-    
+    })    
     # 2. Đăng nhập (Login)
     login_res = api_request.post("/login/", data={
         "username": username,
@@ -86,3 +84,26 @@ def test_login_fail(api_request):
     
     assert response.status == 400 # Hoặc 401 tùy Backend
     assert "incorrect" in response.json()["detail"].lower()
+
+def test_delete_other_user_question(api_request, auth_token, create_question):
+    # 1. 'create_question' đã được tạo bởi User A (từ fixture)
+    
+    # 2. Tạo một Token mới cho User B (Kẻ phá hoại)
+    hacker_res = api_request.post("/create-user/", data={
+        "username": f"hacker_{random.randint(1, 999)}",
+        "password": "password123"
+    })
+    hacker_login = api_request.post("/login/", data={
+        "username": hacker_res.json()["username"],
+        "password": "password123"
+    })
+    hacker_token = hacker_login.json()["access_token"]
+    
+    # 3. Dùng Token của Hacker để xóa câu hỏi của User A
+    headers = {"Authorization": f"Bearer {hacker_token}"}
+    response = api_request.delete(f"/delete-question/{create_question}", headers=headers)
+    
+    # 4. KỲ VỌNG: Backend phải báo lỗi 403 (Forbidden) hoặc 401
+    # Nếu nó trả về 200 (Xóa thành công) => Backend của bạn đang bị lỗi bảo mật!
+    assert response.status in [401, 403], f"LỖI BẢO MẬT: Hacker xóa được bài! Status: {response.status}"
+    print("✅ Hệ thống bảo mật tốt: Hacker không thể xóa bài của người khác.")
