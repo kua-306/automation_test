@@ -27,6 +27,3 @@ jobs:
 
       - name: Run Playwright tests
         run: pytest test_playwright.py
-
-      - name: Run Playwright tests
-        run: pytest test_playwright.py
