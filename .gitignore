@@ -1,7 +1,7 @@
 __pycache__
 *.pyc
-.env
-.env/
+# .env
+# .env/
 .pytest_cache
 alembic/
 alembic.ini
