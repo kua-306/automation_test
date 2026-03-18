@@ -1,6 +1,18 @@
 import pytest
 from playwright.sync_api import Page, expect
 
+def test_signup(page: Page):
+    page.goto('http://127.0.0.1:8000/docs')
+    # Đăng ký
+    signup_section = page.locator("#operations-default-create_user_create_user__post")
+    signup_section.click()
+    signup_section.get_by_role("button", name="Try it out").click()
+    signup_section.locator("textarea.body-param__text").fill(
+        '{"username": "string3006", "password": "string"}'
+    )
+    signup_section.get_by_role("button", name="Execute").click()
+
+
 @pytest.fixture
 def api_page(page: Page):
     page.goto('http://127.0.0.1:8000/docs')
