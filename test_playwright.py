@@ -107,3 +107,4 @@ def test_delete_other_user_question(api_request, auth_token, create_question):
     # Nếu nó trả về 200 (Xóa thành công) => Backend của bạn đang bị lỗi bảo mật!
     assert response.status in [401, 403,404], f"LỖI BẢO MẬT: Hacker xóa được bài! Status: {response.status}"
     print("✅ Hệ thống bảo mật tốt: Hacker không thể xóa bài của người khác.")
+
