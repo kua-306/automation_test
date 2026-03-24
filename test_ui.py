@@ -1,7 +1,10 @@
 import os
 from playwright.sync_api import Page, expect
+import random
 
-
+num = random.randint(0, 9999)
+username = f'account{num}'
+password = 'password'
 def test_example(page: Page) -> None:
     # current_dir = os.path.dirname(os.path.abspath(__file__))
     # file_path = os.path.join(current_dir, "index.html")
@@ -9,11 +12,9 @@ def test_example(page: Page) -> None:
     page.goto(f'file://{os.getcwd()}/index.html')
     expect(page.locator("#auth-section")).to_be_visible()
     page.get_by_role("textbox", name="Username").click()
-    page.get_by_role("textbox", name="Username").fill("thune")
+    page.get_by_role("textbox", name="Username").fill(username)
     page.get_by_role("textbox", name="Password").click()
-    page.get_by_role("textbox", name="Password").fill("ntltcua3006")
-    page.get_by_role("button", name="Đăng ký").click()
-    page.get_by_role("button", name="Đăng ký").click()
+    page.get_by_role("textbox", name="Password").fill(password)
     page.get_by_role("button", name="Đăng ký").click()
     page.get_by_role("button", name="Đăng nhập").click()
     expect(page.locator("#question-section")).to_be_visible
