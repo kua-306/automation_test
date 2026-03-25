@@ -1,6 +1,6 @@
 from pages.login_page import LoginPage
 from pages.question_page import QuestionPage
-import pytest
+import os
 import random
 from playwright.sync_api import Page, expect
 
