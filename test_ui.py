@@ -1,6 +1,7 @@
 import os
 from playwright.sync_api import Page, expect
 import random
+import re
 
 num = random.randint(0, 9999)
 username = f'account{num}'
@@ -16,7 +17,7 @@ def test_example(page: Page) -> None:
     page.get_by_role("textbox", name="Password").click()
     page.get_by_role("textbox", name="Password").fill(password)
     page.get_by_role("button", name="Đăng ký").click()
-    expect(page.locator("#question-section")).to_be_visible
+    expect(page.locator("#question-section")).not_to_have_class(re.compile(r"pointer-events-none"))
 
     # page.get_by_role("button", name="Đăng nhập").click()
     # expect(page.locator("#question-section")).to_be_visible
