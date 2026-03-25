@@ -11,7 +11,7 @@ def test_login(page:Page):
     login_page = LoginPage(page)
     login_page.openurl('http://127.0.0.1:8000')
     login_page.login(username,password)
-    expect(login_page.check("Câu hỏi đã được tạo!"))
+    expect(login_page.check("#question-section")).to_be_visible()
 
 
 

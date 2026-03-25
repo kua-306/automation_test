@@ -10,6 +10,6 @@ class BasePage():
     def click_element(self,selector):
         self.page.locator(selector).click()
     def check(self,text):
-        return self.page.get_by_text(text)
+        return self.page.locator(text)
 
         
