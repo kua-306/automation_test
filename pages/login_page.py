@@ -17,6 +17,6 @@ class SignupPage(BasePage):
         self.password.fill(password)
         self.login_btn.click()
     def check(self):
-        return self.sentbtn
+        return self.page.locator("#question-section")
         
 
