@@ -1,4 +1,4 @@
-from base_page import BasePage
+from pages.base_page import BasePage
 
 class LoginPage(BasePage):
     def __init__(self,page):
@@ -10,4 +10,3 @@ class LoginPage(BasePage):
         self.question.fill(question)
         self.answer.fill(answer)
         self.submit.click()
-        
