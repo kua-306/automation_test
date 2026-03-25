@@ -34,4 +34,4 @@ jobs:
         run: pytest test_mocking.py
         
       - name: Run Test POM
-        run: pytest tests.test_login.py
+        run: pytest tests/test_login.py
