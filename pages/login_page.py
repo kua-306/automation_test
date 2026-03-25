@@ -5,7 +5,7 @@ class LoginPage(BasePage):
         super().__init__(page)
         self.username = page.get_by_role("textbox", name="Username")
         self.password = page.get_by_role("textbox", name="Password")
-        self.login_btn = page.login_page.get_by_role("button", name="Đăng ký")
+        self.login_btn = page.get_by_role("button", name="Đăng ký")
     def login(self,username,password):
         self.username.click()
         self.username.fill(username)
