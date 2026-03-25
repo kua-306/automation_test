@@ -21,7 +21,6 @@ def test_example(page: Page) -> None:
     page.get_by_role("textbox", name="Câu hỏi").click()
     page.get_by_role("textbox", name="Câu hỏi").fill("hello")
     page.get_by_role("textbox", name="Câu trả lời").click()
-    page.get_by_role("textbox", name="Câu trả lời").click()
     page.get_by_role("textbox", name="Câu trả lời").fill("hi")
     page.get_by_role("button", name="Gửi câu hỏi").click()
     expect(page.get_by_text("Câu hỏi đã được tạo!")).to_be_visible()
