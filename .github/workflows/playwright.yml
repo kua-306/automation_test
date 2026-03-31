@@ -35,3 +35,6 @@ jobs:
         
       - name: Run Test POM
         run: pytest tests/test_signup.py
+
+      - name: Run Test POM Login
+        run: pytest tests/test_login.py
